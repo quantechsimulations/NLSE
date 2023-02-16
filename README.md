@@ -7,7 +7,7 @@ Here we implement the NLSE for three different regimes: Kerr medium ($\chi^{(3)}
 
 There are codes for solving the NLSE in one and two dimensions for the above-mentioned regimes, for both imaginary and real time. The former will be used when we are interested in assesing the groundstate of the system while the latter will be used for studying the real-time dynamics. These codes were used for the numerical simulations of the NLSE's analysed in the work of Ref [1].
 
-All codes have been adapted from templates available on http://www.xmds.org/ [2].
+All codes have been adapted from templates available on the webpage of the XMDS project[2].
 
 ## Instructions
 Further instructions regarding compilation, execution and analysis of the data can be found on http://www.xmds.org/.
