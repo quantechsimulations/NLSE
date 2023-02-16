@@ -1,0 +1,176 @@
+<simulation xmds-version="2">
+  <name> chi3chi5_imag </name>
+
+<features>
+    <benchmark />
+    <auto_vectorise />
+    <validation kind="run-time" />
+    <globals>
+      <![CDATA[
+        const real rcrit = 0.4;
+      ]]>
+    </globals>
+    <arguments>
+	    <argument name="psiM" type="real" default_value="1.0"/>      
+	    <argument name="sigma" type="real" default_value="1.0"/>
+      <argument name="g" type="real" default_value="1.0"/>
+    </arguments>
+</features>
+
+<driver name="distributed-mpi" />
+
+  <geometry>
+    <propagation_dimension> t </propagation_dimension>
+    <transverse_dimensions>
+      <dimension name="x" lattice="256"
+                 domain="(-0.6, 0.6)" />
+      <dimension name="y" lattice="256"
+                 domain="(-0.6, 0.6)" />  
+    </transverse_dimensions>
+  </geometry>
+
+  <vector name="wavefunction" initial_basis="x y" type="complex">
+    <components> psiGS </components>
+    <initialisation>
+      <![CDATA[
+         psiGS = (sqrt(psiM)/(sqrt(M_PI*sigma*sigma)))*exp(-x*x/(2.0*pow(sigma,2)))*exp(-y*y/(2.0*pow(sigma,2))); //initial condition
+      ]]>
+    </initialisation>
+  </vector>
+
+   <computed_vector name="normalisation" dimensions="" type="real">
+    <components> psiMnew  </components>
+    <evaluation>
+      <dependencies basis="x y">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the current normalisation of the wave function.
+        psiMnew = mod2(psiGS);
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+<computed_vector name="kin_energy" dimensions="" type="real">
+    <components> en_kin </components>
+    <evaluation>
+      <dependencies basis="kx ky">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the potential energy.
+        en_kin = 0.5*(kx*kx + ky*ky)*mod2(psiGS); //kinetic energy
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+ <computed_vector name="pot_energychi3" dimensions="" type="real">
+    <components> en_potchi3 </components>
+    <evaluation>
+      <dependencies basis="x y">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the potential energy.
+        en_potchi3 = -0.5*mod2(psiGS)*mod2(psiGS); //energy of interaction for the 2-level chi3 term
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+  <computed_vector name="pot_energychi5" dimensions="" type="real">
+    <components> en_potchi5 </components>
+    <evaluation>
+      <dependencies basis="x y">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the potential energy.
+        en_potchi5 = (2.0/3.0)*g*mod2(psiGS)*mod2(psiGS)*mod2(psiGS) ; //energy of interaction for the 2-level chi5 term
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+  <computed_vector name="var_numerator" dimensions="" type="real">
+    <components> var_num </components>
+    <evaluation>
+      <dependencies basis="x y">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the potential energy.
+        var_num = (x*x + y*y)*mod2(psiGS) ; //numerator of the expected value of r**2
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+<sequence>
+<filter>
+        <dependencies>normalisation wavefunction</dependencies>
+      <![CDATA[
+        psiGS *= sqrt(psiM/psiMnew);
+      ]]>
+    </filter>
+       <integrate algorithm="RK4" interval="0.05" steps="500000">
+      <samples>1000 1000 1000 1000 1000</samples>
+      <filters where="step end">
+        <filter>
+          <dependencies>wavefunction normalisation</dependencies>
+          <![CDATA[
+            // Correct normalisation of the wavefunction
+            psiGS *= sqrt(psiM/psiMnew);
+          ]]>
+        </filter>
+      </filters>
+    <operators>
+        <operator kind="ip" dimensions="x">
+          <operator_names>Tx</operator_names>
+          <![CDATA[
+            Tx = -0.5*kx*kx;
+          ]]>
+        </operator>
+    <operator kind="ip" dimensions="y">
+          <operator_names>Ty</operator_names>
+          <![CDATA[
+            Ty = -0.5*ky*ky;
+          ]]>
+    </operator>    
+        <integration_vectors>
+          wavefunction
+        </integration_vectors> 
+        <![CDATA[
+          dpsiGS_dt = Tx[psiGS] + Ty[psiGS] + mod2(psiGS)*psiGS-2*g*mod2(psiGS)*mod2(psiGS)*psiGS;
+        ]]>
+      </operators>
+    </integrate>
+  </sequence>
+
+   <output format="hdf5" filename="final.xsil">
+
+   <sampling_group initial_sample="yes">
+        <moments>energyt</moments>
+        <dependencies>pot_energychi3 pot_energychi5 kin_energy</dependencies>
+        <![CDATA[
+          energyt = en_kin + en_potchi3 + en_potchi5;
+        ]]>
+      </sampling_group>
+      <sampling_group basis="x y" initial_sample="yes">
+        <moments>density</moments>
+        <dependencies>wavefunction</dependencies>
+        <![CDATA[
+          density = mod2(psiGS);
+        ]]>
+      </sampling_group>
+      <sampling_group basis="x(0) y(0)" initial_sample="yes">
+        <moments>norm</moments>
+        <dependencies>wavefunction</dependencies>
+        <![CDATA[
+          norm = mod2(psiGS);
+        ]]>
+      </sampling_group>
+      <sampling_group initial_sample="yes" basis="x y">
+        <dependencies> wavefunction </dependencies>
+        <moments> psirealN psiimagN </moments>
+        <![CDATA[
+          psirealN = Re(psiGS);
+          psiimagN = Im(psiGS);
+      ]]>
+       </sampling_group>
+        <sampling_group initial_sample="yes">
+        <moments> varN </moments>
+        <dependencies>var_numerator</dependencies>
+        <![CDATA[
+          varN = var_num;
+      ]]>
+       </sampling_group>
+  </output>
+</simulation>

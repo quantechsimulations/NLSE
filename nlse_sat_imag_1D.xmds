@@ -1,0 +1,134 @@
+<simulation xmds-version="2">
+  <name> sat_imag </name>
+
+<features>
+    <benchmark />
+    <auto_vectorise />
+    <validation kind="run-time" />
+    <arguments>
+      <argument name="psiM" type="real" default_value="1.0"/>      
+      <argument name="sigma" type="real" default_value="1.0"/>
+      <argument name="g" type="real" default_value="1.0"/>
+    </arguments>
+</features>
+  
+  <geometry>
+    <propagation_dimension> t </propagation_dimension>
+    <transverse_dimensions>
+      <dimension name="r" lattice="1024" domain="(0,0.06)" transform="bessel" volume_prefactor="2*M_PI" />
+    </transverse_dimensions>
+  </geometry>
+
+  <vector name="wavefunction" initial_basis="r" type="complex">
+    <components> psi </components>
+    <initialisation>
+      <![CDATA[
+         psi = (sqrt(psiM)/(sqrt(M_PI * pow(sigma,2))))*exp(-(r*r)/(2*pow(sigma,2))); //initial condition
+      ]]>
+    </initialisation>
+  </vector>
+
+  <computed_vector name="normalisation" dimensions="" type="real">
+    <components> psiMnew  </components>
+    <evaluation>
+      <dependencies basis="r">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the current normalisation of the wave function.
+        psiMnew = mod2(psi);
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+  <computed_vector name="kin_energy" dimensions="" type="real">
+    <components> en_kin </components>
+    <evaluation>
+      <dependencies basis="kr">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the potential energy.
+        en_kin = 0.5*kr*kr*mod2(psi); //kinetic energy
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+  <computed_vector name="pot_energy" dimensions="" type="real">
+    <components> en_pot </components>
+    <evaluation>
+      <dependencies basis="r">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the potential energy.
+        en_pot = -((1.0)/(2.0*g))*mod2(psi)+((1.0)/(4.0*g*g))*log(1+2*g*mod2(psi)); //energy of interaction for the 2-level saturated case
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+
+<sequence>
+    <filter>
+        <dependencies>normalisation wavefunction</dependencies>
+      <![CDATA[
+        psi *= sqrt(psiM/psiMnew);
+      ]]>
+    </filter>
+
+       <integrate algorithm="RK4" interval="0.0177352" steps="5000000">
+      <samples> 1000 1000 1000 1000 </samples>
+      <filters where="step end">
+        <filter>
+          <dependencies>wavefunction normalisation</dependencies>
+          <![CDATA[
+            // Correct normalisation of the wavefunction
+            psi *= sqrt(psiM/psiMnew);
+          ]]>
+        </filter>
+      </filters>
+  <operators>
+
+        <operator kind="ip">
+          <operator_names> Tr </operator_names>
+          <![CDATA[
+            Tr = -0.5*kr*kr;
+          ]]>
+        </operator>
+
+        <integration_vectors>
+          wavefunction
+        </integration_vectors> 
+        <![CDATA[
+          dpsi_dt = Tr[psi]+(mod2(psi)/(1+2*g*mod2(psi)))*psi;
+        ]]>
+      </operators>
+    </integrate>
+  </sequence>
+
+  <output format="hdf5">
+      <sampling_group initial_sample="yes">
+        <moments>energyt</moments>
+        <dependencies>kin_energy pot_energy</dependencies>
+        <![CDATA[
+          energyt = en_kin + en_pot;
+        ]]>
+      </sampling_group>
+    <sampling_group basis="r" initial_sample="yes">
+        <moments>density</moments>
+        <dependencies>wavefunction</dependencies>
+        <![CDATA[
+          density = mod2(psi);
+        ]]>
+      </sampling_group>
+      <sampling_group basis="r(0)" initial_sample="yes">
+        <moments>norm</moments>
+        <dependencies>wavefunction</dependencies>
+        <![CDATA[
+          norm = mod2(psi);
+        ]]>
+      </sampling_group>
+      <sampling_group initial_sample="yes" basis="r">
+        <dependencies> wavefunction </dependencies>
+        <moments> psireal psiimag </moments>
+        <![CDATA[
+          psireal = Re(psi);
+          psiimag = Im(psi);
+      ]]>
+       </sampling_group>
+  </output>
+</simulation>

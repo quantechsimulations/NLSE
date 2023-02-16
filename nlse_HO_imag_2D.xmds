@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simulation xmds-version="2">
+  <name>groundstate_2D</name>
+  <author>Heitor da Silva</author>
+  <description>
+    Calculate the ground state of the non-linear Schrodinger equation in a harmonic magnetic trap.
+    This is done by evolving it in imaginary time while re-normalising each timestep.
+  </description>
+  
+  <features>
+    <auto_vectorise />
+    <benchmark />
+    <bing />
+    <error_check> yes </error_check>
+    <fftw plan="exhaustive" />
+    <globals>
+      <![CDATA[
+        const real Uint = 0.0;
+        const real Nparticles = 50.0;
+      ]]>
+    </globals>
+  </features>
+  
+   <geometry>
+    <propagation_dimension> t </propagation_dimension>
+    <transverse_dimensions>
+      <dimension name="x" lattice="128"
+                 domain="(-15.0, 15.0)" />
+      <dimension name="y" lattice="128"
+                 domain="(-15.0, 15.0)" />  
+    </transverse_dimensions>
+  </geometry>
+
+<vector name="potential" initial_basis="x y" type="real">
+    <components> V </components>
+    <initialisation>
+      <![CDATA[
+        V  = 0.5*x*x+0.5*y*y;
+      ]]>
+    </initialisation>
+  </vector>
+  
+  <vector name="wavefunction" initial_basis="x y" type="complex">
+    <components> phi </components>
+    <initialisation>
+      <![CDATA[
+        if (fabs(x) < 3.0) {
+          phi = 1.0;
+          // This will be automatically normalised later
+        } else {
+          phi = 0.0;
+        }if (fabs(y) < 3.0) {
+          phi = 1.0;
+          // This will be automatically normalised later
+        } else {
+          phi = 0.0;
+        }
+      ]]>
+    </initialisation>
+  </vector>
+  
+  <computed_vector name="normalisation" dimensions="" type="real">
+    <components> Ncalc </components>
+    <evaluation>
+      <dependencies basis="x y">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the current normalisation of the wave function.
+        Ncalc = mod2(phi);
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+<computed_vector name="pot_energy" dimensions="" type="real">
+    <components> en_pot </components>
+    <evaluation>
+      <dependencies basis="x y">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the potential energy.
+        en_pot = 0.5*(x*x + y*y)*mod2(phi);
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+  <computed_vector name="kin_energy" dimensions="" type="real">
+    <components> en_kin </components>
+    <evaluation>
+      <dependencies basis="kx ky">wavefunction</dependencies>
+      <![CDATA[
+        // Calculate the potential energy.
+        en_kin = 0.5*(kx*kx + ky*ky)*mod2(phi);
+      ]]>
+    </evaluation>
+  </computed_vector>
+
+  <sequence>
+      <filter>
+        <![CDATA[
+          printf("Hello world from a filter segment!\n");
+        ]]>
+      </filter>
+
+    <filter>
+        <dependencies>normalisation wavefunction</dependencies>
+      <![CDATA[
+        phi *= sqrt(Nparticles/Ncalc);
+      ]]>
+    </filter>
+
+    <integrate algorithm="ARK45" interval="10.0" steps="4000" tolerance="1e-10">
+      <samples>25 400 400 400 400 </samples>
+      <filters where="step end">
+        <filter>
+          <dependencies>wavefunction normalisation</dependencies>
+          <![CDATA[
+            // Correct normalisation of the wavefunction
+            phi *= sqrt(Nparticles/Ncalc);
+          ]]>
+        </filter>
+      </filters>
+      <operators>
+        <operator kind="ip" dimensions="x">
+          <operator_names>Tx</operator_names>
+          <![CDATA[
+            Tx = -0.5*kx*kx;
+          ]]>
+        </operator>
+  <operator kind="ip" dimensions="y">
+          <operator_names>Ty</operator_names>
+          <![CDATA[
+            Ty = -0.5*ky*ky;
+          ]]>
+        </operator>
+  <integration_vectors>wavefunction</integration_vectors>
+        <dependencies>potential</dependencies>
+        <![CDATA[
+          dphi_dt = Tx[phi] + Ty[phi] - (V + Uint*mod2(phi))*phi;
+        ]]>u
+      </operators>
+    </integrate>
+
+    <breakpoint filename="groundstate_2D_break.xsil" format="ascii">
+      <dependencies basis="kx ky">wavefunction </dependencies>
+    </breakpoint>
+
+  </sequence>
+
+  <output filename="groundstate_2D.xsil">
+      <sampling_group basis="x y" initial_sample="yes">
+        <moments>norm_dens</moments>
+        <dependencies>wavefunction normalisation</dependencies>
+        <![CDATA[
+          norm_dens = mod2(phi);
+        ]]>
+      </sampling_group>
+      <sampling_group initial_sample="yes">
+        <moments>norm</moments>
+        <dependencies>normalisation</dependencies>
+        <![CDATA[
+          norm = Ncalc;
+        ]]>
+      </sampling_group>
+      <sampling_group initial_sample="yes">
+        <moments>energyp</moments>
+        <dependencies>pot_energy</dependencies>
+        <![CDATA[
+          energyp = en_pot;
+        ]]>
+      </sampling_group>
+      <sampling_group initial_sample="yes">
+        <moments>energyk</moments>
+        <dependencies>kin_energy</dependencies>
+        <![CDATA[
+          energyk = en_kin;
+        ]]>
+      </sampling_group>
+      <sampling_group initial_sample="yes" basis="x y">
+      <dependencies> wavefunction </dependencies>
+      <moments> phireal phiimag </moments>
+      <![CDATA[
+        phireal = Re(phi);
+        phiimag = Im(phi);
+      ]]>
+      </sampling_group>
+  </output>
+</simulation>
