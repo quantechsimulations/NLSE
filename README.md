@@ -12,6 +12,9 @@ All codes have been adapted from templates available on the webpage of the XMDS 
 ## Instructions
 Further instructions regarding compilation, execution and analysis of the data can be found on http://www.xmds.org/.
 
+##Further comments
+The codes whose names contain *Hankel transform*
+
 ## Bibliography
 [1] H. da Silva, R. Kaiser et T. Macrì., arXiv:2211.07037 (2022).
 
