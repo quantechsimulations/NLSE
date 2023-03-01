@@ -1,18 +1,21 @@
 <simulation xmds-version="2">
   <name> chi3chi5_imag </name>
+  <author>Heitor da Silva</author>
+	  <description>
+	    This code calculates the ground state of the 2D NLSE up to the chi3+chi5 regime.
+	    The procedure is carried out in imaginary time while re-normalising each timestep.
+	    The current version returns four outputs: the total energy as a function of t,
+	    the density as a function of tranverse coordinates x and y, the normalization as a function
+	    of t and, the imaginary and real components of the wavefunction as function of x, y and t.
+	  </description>
 
 <features>
     <benchmark />
     <auto_vectorise />
     <validation kind="run-time" />
-    <globals>
-      <![CDATA[
-        const real rcrit = 0.4;
-      ]]>
-    </globals>
     <arguments>
-	    <argument name="psiM" type="real" default_value="1.0"/>      
-	    <argument name="sigma" type="real" default_value="1.0"/>
+      <argument name="psiM" type="real" default_value="1.0"/>      
+      <argument name="sigma" type="real" default_value="1.0"/>
       <argument name="g" type="real" default_value="1.0"/>
     </arguments>
 </features>
@@ -82,17 +85,6 @@
     </evaluation>
   </computed_vector>
 
-  <computed_vector name="var_numerator" dimensions="" type="real">
-    <components> var_num </components>
-    <evaluation>
-      <dependencies basis="x y">wavefunction</dependencies>
-      <![CDATA[
-        // Calculate the potential energy.
-        var_num = (x*x + y*y)*mod2(psiGS) ; //numerator of the expected value of r**2
-      ]]>
-    </evaluation>
-  </computed_vector>
-
 <sequence>
 <filter>
         <dependencies>normalisation wavefunction</dependencies>
@@ -101,7 +93,7 @@
       ]]>
     </filter>
        <integrate algorithm="RK4" interval="0.05" steps="500000">
-      <samples>1000 1000 1000 1000 1000</samples>
+      <samples>500 500 500 5000 </samples>
       <filters where="step end">
         <filter>
           <dependencies>wavefunction normalisation</dependencies>
@@ -163,13 +155,6 @@
         <![CDATA[
           psirealN = Re(psiGS);
           psiimagN = Im(psiGS);
-      ]]>
-       </sampling_group>
-        <sampling_group initial_sample="yes">
-        <moments> varN </moments>
-        <dependencies>var_numerator</dependencies>
-        <![CDATA[
-          varN = var_num;
       ]]>
        </sampling_group>
   </output>
