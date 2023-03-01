@@ -1,5 +1,13 @@
 <simulation xmds-version="2">
   <name> sat_real </name>
+  <author>Heitor da Silva</author>
+	  <description>
+	    This code provides the real time evolution of the 2D NLSE for the saturating regime.
+	    The current version returns four outputs: the total energy as a function of t,
+	    the density as a function of transverse coordinates x and y, the normalization as a function
+	    of t and, the imaginary and real components of the wave function as function of x, y and t.
+	    Absorbing boundary conditions have been implemented. They can be switched off by setting kappa = 0.
+	  </description>
 
 <features>
     <benchmark />
