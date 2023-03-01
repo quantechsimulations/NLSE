@@ -17,7 +17,7 @@ The codes whose names contain *Hankel transform* are 1D numerical simulations.
 
 Due to the radial symmetry present in most cases, we can use the Hankel transform to reduce from a 2D to 1D system, in addition, to speeding up the simulations. For most of the simulations in 2D, the codes have been parallelized. For detailed instructions on how to run them, please refer to the documentation on http://www.xmds.org/. 
 
-Finally, the code *townes_soliton_equationSolver.py* written in python is used to solve the cubic NLSE. When waveguide solutions area assumed, we can eliminate the dependence on the time coordinate. Taking advantage of the radial symmetry, we are left with an equation for the radial coordinate only. Its solution above a critical power is the Townes soliton. More details can be found in the work of Ref [1].
+Finally, the code *townes_soliton_equationSolver.py* is used to solve the cubic NLSE. When waveguide solutions are assumed, we can eliminate the dependence on the time coordinate. Taking advantage of the radial symmetry, we are left with an equation for the radial coordinate only. Its solution above a critical power is the Townes soliton. More details can be found in the work of Ref [1].
 
 ## Bibliography
 [1] H. da Silva, R. Kaiser et T. Macrì., arXiv:2211.07037 (2022).
