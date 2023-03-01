@@ -1,5 +1,15 @@
 <simulation xmds-version="2">
   <name> chi3chi5_imag </name>
+    <author>Heitor da Silva</author>
+	  <description>
+	    This code calculates the ground state of the 2D NLSE up to the chi3+chi5 regime.
+	    The procedure is carried out in imaginary time while re-normalising each timestep.
+	    The current version returns four outputs: the total energy as a function of t,
+	    the density as a function of the radial coordinate r, the normalization as a function
+	    of t and, the imaginary and real components of the wavefunction as function of r and t.
+	    Here we use the Hankel-transform which taking advantage of the radial symmetry of the
+	    problem. Therefore, the 2D problem becomes 1D from the numerical point of view.
+	  </description>
 
 <features>
     <benchmark />
