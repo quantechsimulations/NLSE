@@ -3,8 +3,13 @@
   <name>groundstate_nointeraction2D_n1u0</name>
   <author>Heitor da Silva</author>
   <description>
-    Calculate the ground state of the non-linear Schrodinger equation in a harmonic magnetic trap.
-    This is done by evolving it in imaginary time while re-normalising each timestep.
+    This code finds the groundstate wave function of the 2D quantum harmonic oscillator.
+    The procedure is carried out in imaginary time while re-normalising each timestep.
+    As outputs, this code returns: the density as a function of r and t; as a function
+    of time only: the normalization, the kinetic, potential and total energies. Finally,
+    the imaginary and real components of the wavefunction as function of r and t.
+    In this code, we use the Hankel-transform taking advantage of the radial symmetry of
+    the system. Thus, the 2D problem can be reduced to a 1D problem.
   </description>
   
   <features>
@@ -104,7 +109,7 @@
     </filter>
 
     <integrate algorithm="ARK45" interval="4.0" steps="400" tolerance="1e-10">
-      <samples>25 400 400 400 400 </samples>
+      <samples>25 400 400 400 400 400 </samples>
       <filters where="step end">
         <filter>
           <dependencies>wavefunction normalisation</dependencies>
@@ -162,6 +167,13 @@
         <dependencies>kin_energy</dependencies>
         <![CDATA[
           energyk = en_kin;
+        ]]>
+      </sampling_group>
+    <sampling_group initial_sample="yes">
+        <moments>energyt</moments>
+        <dependencies>kin_energy pot_energy</dependencies>
+        <![CDATA[
+          energyt = en_kin + en_pot;
         ]]>
       </sampling_group>
       <sampling_group initial_sample="yes" basis="r">
