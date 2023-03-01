@@ -1,5 +1,5 @@
 # NLSE
-In this repository, we provide codes for simulating the nonlinear Schrödinger equations for different optical regimes.
+In this repository, we provide codes for simulating the nonlinear Schrödinger equations for different optical regimes considering the focusing (attractive) regime.
 
 The propagation of light in a nonlinear medium is described by a Nonlinear Schrödinger equation (NLSE). Depending on the intensity of the light field amplitude, the system's response which is given by its susceptibility will have a different functional form.
 
