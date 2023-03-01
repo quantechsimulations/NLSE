@@ -1,5 +1,13 @@
 <simulation xmds-version="2">
   <name> chi3_imag </name>
+    <author>Heitor da Silva</author>
+	  <description>
+	    This code calculates the ground state of the 2D NLSE up to the chi3 regime.
+	    The procedure is carried out in imaginary time while re-normalising each timestep.
+	    The current version returns four outputs: the total energy as a function of t,
+	    the density as a function of tranverse coordinates x and y, the normalization as a function
+	    of t and, the imaginary and real components of the wavefunction as function of x, y and t.
+	  </description>
 
 <features>
     <benchmark />
@@ -7,8 +15,8 @@
     <error_check> yes </error_check>
     <validation kind="run-time" />
     <arguments>
-	    <argument name="psiM" type="real" default_value="1.0"/>      
-	    <argument name="sigma" type="real" default_value="1.0"/>
+      <argument name="psiM" type="real" default_value="1.0"/>      
+      <argument name="sigma" type="real" default_value="1.0"/>
       <argument name="g" type="real" default_value="1.0"/>
     </arguments>
 </features>
